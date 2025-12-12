@@ -39,11 +39,13 @@ if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     if [ -d "$INSTALL_DIR" ] && [ -f "$INSTALL_DIR/src/update_repos.py" ]; then
         echo -e "${YELLOW}Existing installation found at $INSTALL_DIR${NC}"
         
-        # Backup user's repos.csv if it exists and differs from source
+        # Backup user's repos.csv to /tmp (outside install dir to survive cp -rT)
+        BACKUP_FILE=""
         if [ -f "$INSTALL_DIR/repos.csv" ]; then
             echo -e "${YELLOW}Backing up existing repos.csv...${NC}"
-            cp "$INSTALL_DIR/repos.csv" "$INSTALL_DIR/repos.csv.backup"
-            echo -e "${GREEN}✓ Backed up to repos.csv.backup${NC}"
+            BACKUP_FILE="/tmp/repos.csv.backup.$$"
+            cp "$INSTALL_DIR/repos.csv" "$BACKUP_FILE"
+            echo -e "${GREEN}✓ Backed up to temporary location${NC}"
         fi
         
         echo -e "${YELLOW}Updating installation...${NC}"
@@ -51,14 +53,15 @@ if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
         echo -e "${YELLOW}Copying project to $INSTALL_DIR...${NC}"
         # Create directory if it doesn't exist
         mkdir -p "$INSTALL_DIR"
+        BACKUP_FILE=""
     fi
 
     # Copy all files (using -rT to copy contents directly, works with existing dirs)
     cp -rT "$SCRIPT_DIR" "$INSTALL_DIR"
     
     # Restore user's repos.csv if backup exists
-    if [ -f "$INSTALL_DIR/repos.csv.backup" ]; then
-        mv "$INSTALL_DIR/repos.csv.backup" "$INSTALL_DIR/repos.csv"
+    if [ -n "$BACKUP_FILE" ] && [ -f "$BACKUP_FILE" ]; then
+        mv "$BACKUP_FILE" "$INSTALL_DIR/repos.csv"
         echo -e "${GREEN}✓ Restored user's repos.csv${NC}"
     fi
 

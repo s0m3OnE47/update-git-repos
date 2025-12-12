@@ -38,7 +38,8 @@ fi
 
 # Ask about removing the project directory
 echo ""
-read -p "Remove project directory $INSTALL_DIR? [y/N] " -n 1 -r
+# Use || true to prevent exit on EOF (non-interactive environments, CI/CD)
+read -p "Remove project directory $INSTALL_DIR? [y/N] " -n 1 -r REPLY || true
 echo ""
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
