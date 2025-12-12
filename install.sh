@@ -40,8 +40,8 @@ if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     # Create directory if it doesn't exist
     mkdir -p "$INSTALL_DIR"
     
-    # Copy all files
-    cp -r "$SCRIPT_DIR"/* "$INSTALL_DIR/"
+    # Copy all files (using /. to avoid glob expansion issues with set -e)
+    cp -rT "$SCRIPT_DIR" "$INSTALL_DIR"
     
     echo -e "${GREEN}✓ Project copied to $INSTALL_DIR${NC}"
 else
