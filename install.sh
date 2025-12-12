@@ -35,15 +35,34 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # If not already in /opt/update-git-repos, copy the project there
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
-    echo -e "${YELLOW}Copying project to $INSTALL_DIR...${NC}"
-    
-    # Create directory if it doesn't exist
-    mkdir -p "$INSTALL_DIR"
-    
-    # Copy all files (using /. to avoid glob expansion issues with set -e)
+    # Check if destination already exists (reinstall scenario)
+    if [ -d "$INSTALL_DIR" ] && [ -f "$INSTALL_DIR/src/update_repos.py" ]; then
+        echo -e "${YELLOW}Existing installation found at $INSTALL_DIR${NC}"
+        
+        # Backup user's repos.csv if it exists and differs from source
+        if [ -f "$INSTALL_DIR/repos.csv" ]; then
+            echo -e "${YELLOW}Backing up existing repos.csv...${NC}"
+            cp "$INSTALL_DIR/repos.csv" "$INSTALL_DIR/repos.csv.backup"
+            echo -e "${GREEN}✓ Backed up to repos.csv.backup${NC}"
+        fi
+        
+        echo -e "${YELLOW}Updating installation...${NC}"
+    else
+        echo -e "${YELLOW}Copying project to $INSTALL_DIR...${NC}"
+        # Create directory if it doesn't exist
+        mkdir -p "$INSTALL_DIR"
+    fi
+
+    # Copy all files (using -rT to copy contents directly, works with existing dirs)
     cp -rT "$SCRIPT_DIR" "$INSTALL_DIR"
     
-    echo -e "${GREEN}✓ Project copied to $INSTALL_DIR${NC}"
+    # Restore user's repos.csv if backup exists
+    if [ -f "$INSTALL_DIR/repos.csv.backup" ]; then
+        mv "$INSTALL_DIR/repos.csv.backup" "$INSTALL_DIR/repos.csv"
+        echo -e "${GREEN}✓ Restored user's repos.csv${NC}"
+    fi
+
+    echo -e "${GREEN}✓ Project installed to $INSTALL_DIR${NC}"
 else
     echo -e "${GREEN}✓ Project already in $INSTALL_DIR${NC}"
 fi
