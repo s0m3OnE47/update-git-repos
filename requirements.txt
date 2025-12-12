@@ -1,0 +1,3 @@
+# Git Repository Updater
+# No external dependencies required - uses Python standard library only
+
