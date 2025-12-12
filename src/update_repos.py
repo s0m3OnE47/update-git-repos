@@ -18,8 +18,11 @@ import argparse
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Project root directory (absolute path for system-wide installation)
+PROJECT_ROOT = Path("/opt/update-git-repos")
+
+# Add project root to path for imports
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from util.models import Repository, UpdateResult
 from util.logger import Logger
@@ -49,8 +52,8 @@ Examples:
     parser.add_argument(
         "--csv", "-c",
         type=Path,
-        default=Path(__file__).parent.parent / "repos.csv",
-        help="Path to the CSV configuration file (default: repos.csv)"
+        default=PROJECT_ROOT / "repos.csv",
+        help="Path to the CSV configuration file (default: /opt/update-git-repos/repos.csv)"
     )
 
     parser.add_argument(
