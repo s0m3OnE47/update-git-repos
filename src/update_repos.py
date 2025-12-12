@@ -7,7 +7,7 @@ each repository by fetching and pulling the specified branches.
 
 Usage:
     python update_repos.py [--csv PATH] [--no-color] [--dry-run]
-    
+
 Examples:
     python update_repos.py                    # Use default repos.csv
     python update_repos.py --csv my_repos.csv # Use custom CSV file
@@ -45,26 +45,26 @@ Examples:
     %(prog)s --dry-run                # Preview without updating
         """
     )
-    
+
     parser.add_argument(
         "--csv", "-c",
         type=Path,
         default=Path(__file__).parent.parent / "repos.csv",
         help="Path to the CSV configuration file (default: repos.csv)"
     )
-    
+
     parser.add_argument(
         "--no-color",
         action="store_true",
         help="Disable colored output"
     )
-    
+
     parser.add_argument(
         "--dry-run", "-n",
         action="store_true",
         help="Preview repositories without updating"
     )
-    
+
     return parser.parse_args()
 
 
@@ -73,41 +73,41 @@ def print_summary(results: list[UpdateResult]) -> None:
     if not results:
         Logger.warning("No repositories were processed")
         return
-    
+
     # Calculate column widths
     path_width = max(len(str(r.repo_path.name)) for r in results)
     branch_width = max(len(r.branch) for r in results)
-    
+
     # Ensure minimum widths
     path_width = max(path_width, 10)
     branch_width = max(branch_width, 8)
-    
+
     # Print header
     Logger.header("Update Summary")
-    
+
     header = f"{'Repository':<{path_width}}  {'Branch':<{branch_width}}  {'Status':<8}  Message"
     separator = "─" * len(header)
-    
+
     Logger.info(header)
     Logger.dim(separator)
-    
+
     # Print results
     success_count = 0
     failure_count = 0
-    
+
     for result in results:
         repo_name = result.repo_path.name
         status = "✓ OK" if result.success else "✗ FAIL"
-        
+
         line = f"{repo_name:<{path_width}}  {result.branch:<{branch_width}}  {status:<8}  {result.message}"
-        
+
         if result.success:
             Logger.success(line)
             success_count += 1
         else:
             Logger.error(line)
             failure_count += 1
-    
+
     # Print totals
     Logger.newline()
     total = len(results)
@@ -117,18 +117,18 @@ def print_summary(results: list[UpdateResult]) -> None:
 def update_repository(repo: Repository, dry_run: bool = False) -> list[UpdateResult]:
     """
     Update a single repository.
-    
+
     Args:
         repo: Repository configuration
         dry_run: If True, only preview without making changes
-        
+
     Returns:
         List of UpdateResult for each branch
     """
     results = []
-    
+
     Logger.info(f"Processing: {repo.path}")
-    
+
     if dry_run:
         for branch in repo.branches:
             Logger.dim(f"  Would update branch: {branch}")
@@ -136,7 +136,7 @@ def update_repository(repo: Repository, dry_run: bool = False) -> list[UpdateRes
                 repo.path, branch, "[DRY RUN] Would update"
             ))
         return results
-    
+
     with GitRepo(repo.path) as git:
         # Check for uncommitted changes
         if git.has_uncommitted_changes():
@@ -146,7 +146,7 @@ def update_repository(repo: Repository, dry_run: bool = False) -> list[UpdateRes
                     repo.path, branch, "Uncommitted changes present"
                 ))
             return results
-        
+
         # Fetch all remotes first
         Logger.dim(f"  Fetching remotes...")
         if not git.fetch_all():
@@ -155,32 +155,32 @@ def update_repository(repo: Repository, dry_run: bool = False) -> list[UpdateRes
                     repo.path, branch, "Failed to fetch remotes"
                 ))
             return results
-        
+
         # Update each branch
         for branch in repo.branches:
             Logger.dim(f"  Updating branch: {branch}")
             result = git.update_branch(branch)
             results.append(result)
-            
+
             if result.success:
                 Logger.success(f"    {branch}: Updated successfully")
             else:
                 Logger.error(f"    {branch}: {result.message}")
-    
+
     return results
 
 
 def main() -> int:
     """Main entry point for the repository updater."""
     args = parse_args()
-    
+
     # Configure logger
     if args.no_color:
         Logger.use_colors = False
-    
+
     # Print header
     Logger.header("Git Repository Updater")
-    
+
     # Check CSV file
     if not args.csv.exists():
         Logger.error(f"CSV file not found: {args.csv}")
@@ -188,17 +188,17 @@ def main() -> int:
         Logger.dim("  path,branches,enabled")
         Logger.dim("  /path/to/repo,main,true")
         return 1
-    
+
     if args.dry_run:
         Logger.warning("DRY RUN MODE - No changes will be made")
-    
+
     Logger.info(f"Loading repositories from: {args.csv}")
     Logger.newline()
-    
+
     # Process repositories
     all_results: list[UpdateResult] = []
     repo_count = 0
-    
+
     try:
         for repo in get_enabled_repositories(args.csv):
             repo_count += 1
@@ -211,14 +211,14 @@ def main() -> int:
     except KeyboardInterrupt:
         Logger.warning("\nInterrupted by user")
         return 130
-    
+
     if repo_count == 0:
         Logger.warning("No enabled repositories found in CSV file")
         return 0
-    
+
     # Print summary
     print_summary(all_results)
-    
+
     # Return exit code based on results
     failures = sum(1 for r in all_results if not r.success)
     return 1 if failures > 0 else 0

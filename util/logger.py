@@ -27,17 +27,17 @@ class Color(Enum):
 class Logger:
     """
     Provides colored console output for user feedback.
-    
+
     All methods are static for convenience. Colors can be disabled
     by setting the class variable `use_colors = False`.
-    
+
     Example:
         Logger.success("Repository updated!")
         Logger.error("Failed to fetch remote")
         Logger.info("Processing 5 repositories...")
         Logger.warning("Branch 'develop' not found, skipping")
     """
-    
+
     use_colors: bool = True
     output: TextIO = sys.stdout
     error_output: TextIO = sys.stderr

@@ -15,7 +15,7 @@ from typing import Self
 class Repository:
     """
     Represents a git repository configuration from CSV.
-    
+
     Attributes:
         path: Absolute path to the git repository directory
         branches: List of branch names to update
@@ -29,50 +29,50 @@ class Repository:
     def from_csv_row(cls, row: dict[str, str]) -> Self:
         """
         Create a Repository from a CSV row dictionary.
-        
+
         Args:
             row: Dictionary with 'path', 'branches', and optionally 'enabled' keys
-            
+
         Returns:
             Repository instance
-            
+
         Raises:
             ValueError: If required fields are missing or invalid
         """
         if "path" not in row:
             raise ValueError("CSV row missing required 'path' field")
-        
+
         path = Path(row["path"].strip())
-        
+
         # Parse branches (comma-separated)
         branches_str = row.get("branches", "").strip()
         branches = [b.strip() for b in branches_str.split(",") if b.strip()]
-        
+
         # Parse enabled flag (defaults to True)
         enabled_str = row.get("enabled", "true").strip().lower()
         enabled = enabled_str in ("true", "yes", "1", "")
-        
+
         return cls(path=path, branches=branches, enabled=enabled)
 
     def validate(self) -> list[str]:
         """
         Validate the repository configuration.
-        
+
         Returns:
             List of validation error messages (empty if valid)
         """
         errors = []
-        
+
         if not self.path.exists():
             errors.append(f"Repository path does not exist: {self.path}")
         elif not self.path.is_dir():
             errors.append(f"Repository path is not a directory: {self.path}")
         elif not (self.path / ".git").exists():
             errors.append(f"Path is not a git repository: {self.path}")
-            
+
         if not self.branches:
             errors.append(f"No branches specified for repository: {self.path}")
-            
+
         return errors
 
 
@@ -80,7 +80,7 @@ class Repository:
 class UpdateResult:
     """
     Represents the result of updating a single branch.
-    
+
     Attributes:
         repo_path: Path to the repository that was updated
         branch: Name of the branch that was updated

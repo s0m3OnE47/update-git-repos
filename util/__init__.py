@@ -15,7 +15,7 @@ from .git_operations import GitRepo
 
 __all__ = [
     "Repository",
-    "UpdateResult", 
+    "UpdateResult",
     "Logger",
     "load_repositories",
     "GitRepo",
