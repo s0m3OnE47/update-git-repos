@@ -18,8 +18,9 @@ import argparse
 import sys
 from pathlib import Path
 
-# Project root directory (absolute path for system-wide installation)
-PROJECT_ROOT = Path("/opt/update-git-repos")
+# Resolve symlinks to get the real script location, then find project root
+# This works both for direct execution and when symlinked from /usr/bin
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Add project root to path for imports
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -53,7 +54,7 @@ Examples:
         "--csv", "-c",
         type=Path,
         default=PROJECT_ROOT / "repos.csv",
-        help="Path to the CSV configuration file (default: /opt/update-git-repos/repos.csv)"
+        help="Path to the CSV configuration file (default: repos.csv in project root)"
     )
 
     parser.add_argument(
