@@ -26,8 +26,62 @@ update-git-repos/
 │   ├── git_operations.py    # Git command wrapper (GitRepo class)
 │   └── logger.py            # Colored console output
 ├── repos.csv                # Your repository configuration
+├── install.sh               # Installation script
+├── uninstall.sh             # Uninstallation script
 ├── README.md                # This file
+├── LICENSE                  # MIT License
 └── requirements.txt         # Dependencies (none required)
+```
+
+## Installation
+
+### Quick Install
+
+```bash
+# Clone or download the project
+git clone <repo-url> /opt/update-git-repos
+
+# Run the install script
+cd /opt/update-git-repos
+sudo ./install.sh
+```
+
+The install script will:
+1. Copy the project to `/opt/update-git-repos` (if not already there)
+2. Make the main script executable
+3. Create a symlink at `/usr/bin/update-git-repos`
+
+After installation, you can run `update-git-repos` from anywhere.
+
+### Manual Install
+
+```bash
+# Make the script executable
+sudo chmod +x /opt/update-git-repos/src/update_repos.py
+
+# Create symlink in /usr/bin
+sudo ln -s /opt/update-git-repos/src/update_repos.py /usr/bin/update-git-repos
+```
+
+## Uninstallation
+
+```bash
+cd /opt/update-git-repos
+sudo ./uninstall.sh
+```
+
+The uninstall script will:
+1. Remove the symlink from `/usr/bin`
+2. Optionally remove the project directory from `/opt`
+
+### Manual Uninstall
+
+```bash
+# Remove the symlink
+sudo rm /usr/bin/update-git-repos
+
+# Optionally remove the project
+sudo rm -rf /opt/update-git-repos
 ```
 
 ## Quick Start
@@ -47,14 +101,17 @@ path,branches,enabled
 ### 2. Run the Script
 
 ```bash
-# From the project directory
+# If installed system-wide
+update-git-repos
+
+# Or from the project directory
 python src/update_repos.py
 
-# Or with a custom CSV file
-python src/update_repos.py --csv /path/to/my_repos.csv
+# With a custom CSV file
+update-git-repos --csv /path/to/my_repos.csv
 
 # Preview without making changes
-python src/update_repos.py --dry-run
+update-git-repos --dry-run
 ```
 
 ## CSV File Format
@@ -89,35 +146,35 @@ path,branches,enabled
 
 ```bash
 # Update all enabled repositories using default repos.csv
-python src/update_repos.py
+update-git-repos
 ```
 
 ### Custom CSV File
 
 ```bash
 # Use a different configuration file
-python src/update_repos.py --csv ~/work/work_repos.csv
+update-git-repos --csv ~/work/work_repos.csv
 ```
 
 ### Dry Run (Preview)
 
 ```bash
 # See what would be updated without making changes
-python src/update_repos.py --dry-run
+update-git-repos --dry-run
 ```
 
 ### Disable Colors (for scripts/logs)
 
 ```bash
 # Plain text output without ANSI colors
-python src/update_repos.py --no-color > update.log
+update-git-repos --no-color > update.log
 ```
 
 ### Combine Options
 
 ```bash
 # Preview updates from custom file without colors
-python src/update_repos.py --csv ~/repos.csv --dry-run --no-color
+update-git-repos --csv ~/repos.csv --dry-run --no-color
 ```
 
 ## Sample Output
