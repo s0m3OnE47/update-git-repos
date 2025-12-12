@@ -1,3 +1,7 @@
 path,branches,enabled
 /home/aniket/Projects/Personal/cuda-course,master,true
+/home/aniket/Projects/Personal/cuda-samples,master,true
+/home/aniket/Projects/Personal/hakatime,master,true
+/home/aniket/Projects/Personal/wakafetch,main,true
+
 
