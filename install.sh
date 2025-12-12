@@ -72,10 +72,14 @@ echo -e "${YELLOW}Making script executable...${NC}"
 chmod +x "$SCRIPT_PATH"
 echo -e "${GREEN}✓ Made $SCRIPT_PATH executable${NC}"
 
-# Remove existing symlink if it exists
-if [ -L "$SYMLINK_PATH" ]; then
-    echo -e "${YELLOW}Removing existing symlink...${NC}"
-    rm "$SYMLINK_PATH"
+# Remove existing file/symlink if it exists
+if [ -e "$SYMLINK_PATH" ] || [ -L "$SYMLINK_PATH" ]; then
+    if [ -L "$SYMLINK_PATH" ]; then
+        echo -e "${YELLOW}Removing existing symlink...${NC}"
+    else
+        echo -e "${YELLOW}Removing existing file at $SYMLINK_PATH...${NC}"
+    fi
+    rm -f "$SYMLINK_PATH"
 fi
 
 # Create symlink in /usr/bin
