@@ -39,16 +39,18 @@ class GitRepo:
         original_branch: Branch that was active when context was entered
     """
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, run_as_user: str | None = None) -> None:
         """
         Initialize a GitRepo instance.
 
         Args:
             path: Path to the git repository directory
+            run_as_user: Optional username to run git commands as (via sudo -u)
         """
         self.path = path
         self.original_branch: str | None = None
         self._entered = False
+        self.run_as_user = run_as_user
 
     def __enter__(self) -> Self:
         """
@@ -88,7 +90,13 @@ class GitRepo:
         Raises:
             GitError: If the git command fails
         """
-        cmd = ["git", "-C", str(self.path)] + list(args)
+        git_cmd = ["git", "-C", str(self.path)] + list(args)
+        
+        # If run_as_user is specified, wrap with sudo -u
+        if self.run_as_user:
+            cmd = ["sudo", "-u", self.run_as_user] + git_cmd
+        else:
+            cmd = git_cmd
 
         try:
             result = subprocess.run(

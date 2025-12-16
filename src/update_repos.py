@@ -15,6 +15,7 @@ Examples:
 """
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -29,6 +30,25 @@ from util.models import Repository, UpdateResult
 from util.logger import Logger
 from util.csv_handler import get_enabled_repositories
 from util.git_operations import GitRepo
+
+
+def get_original_user() -> str | None:
+    """
+    Get the original user who invoked sudo, if running as root.
+    
+    Returns:
+        Username to run git commands as, or None if not needed
+    """
+    # Check if running as root
+    if os.geteuid() == 0:
+        # Try to get original user from SUDO_USER environment variable
+        original_user = os.environ.get("SUDO_USER")
+        if original_user:
+            return original_user
+        # Fallback: try to get from USER environment variable
+        # (might be set even when running as root)
+        return os.environ.get("USER")
+    return None
 
 
 def parse_args() -> argparse.Namespace:
@@ -118,13 +138,14 @@ def print_summary(results: list[UpdateResult]) -> None:
     Logger.info(f"Total: {total} | Success: {success_count} | Failed: {failure_count}")
 
 
-def update_repository(repo: Repository, dry_run: bool = False) -> list[UpdateResult]:
+def update_repository(repo: Repository, dry_run: bool = False, run_as_user: str | None = None) -> list[UpdateResult]:
     """
     Update a single repository.
 
     Args:
         repo: Repository configuration
         dry_run: If True, only preview without making changes
+        run_as_user: Optional username to run git commands as (via sudo -u)
 
     Returns:
         List of UpdateResult for each branch
@@ -141,7 +162,7 @@ def update_repository(repo: Repository, dry_run: bool = False) -> list[UpdateRes
             ))
         return results
 
-    with GitRepo(repo.path) as git:
+    with GitRepo(repo.path, run_as_user=run_as_user) as git:
         # Check for uncommitted changes
         if git.has_uncommitted_changes():
             Logger.warning(f"  Repository has uncommitted changes, skipping")
@@ -196,6 +217,11 @@ def main() -> int:
     if args.dry_run:
         Logger.warning("DRY RUN MODE - No changes will be made")
 
+    # Get original user if running as root (via sudo)
+    run_as_user = get_original_user()
+    if run_as_user:
+        Logger.dim(f"Running git operations as user: {run_as_user}")
+
     Logger.info(f"Loading repositories from: {args.csv}")
     Logger.newline()
 
@@ -206,7 +232,7 @@ def main() -> int:
     try:
         for repo in get_enabled_repositories(args.csv):
             repo_count += 1
-            results = update_repository(repo, dry_run=args.dry_run)
+            results = update_repository(repo, dry_run=args.dry_run, run_as_user=run_as_user)
             all_results.extend(results)
             Logger.newline()
     except FileNotFoundError as e:
